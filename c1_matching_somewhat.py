@@ -7,12 +7,9 @@ import numpy as np
 bp.math.set_dt(0.04)
 
 class HH(bp.dyn.NeuGroup):
-  # def __init__(self, size,ENa=120., EK=-12., EL=10.6, C=1.0, gNa=120.,
-  #              gK=36., gL=0.3, V_th=-55., method='exp_auto',**kwargs):
+  # it is a huge difference with change in method 
     def __init__(self, size,ENa=55., EK=-90., EL=-65, C=1.0, gNa=35.,
                gK=9., gL=0.1, V_th=0., method= 'exponential_euler',**kwargs ): # 'exp_auto',**kwargs):
-        # providing the group "size" information
-        # V_th was 20 earlier
         super(HH, self).__init__(size=size, **kwargs)
 
         # initialize parameters
@@ -27,15 +24,9 @@ class HH(bp.dyn.NeuGroup):
 
 
         # initialize variables
-
-        # self.V = bm.Variable(np.array([10.0, 20 , -60, -70, 30, -100, -65, 70, 80, 40])) #y[0:10]) #
-        # self.V  = bm.Variable(bm.ones(size)*-55)
-        # self.n = bm.Variable(bm.zeros(size)) # * 0.8)
-        # self.h = bm.Variable(bm.zeros(size))# * 0.05)
         self.V = bm.Variable(-55 + bm.random.normal(size=100) * 5)
         n_alpha = -0.01 * (self.V + 34) / (bm.exp(-0.1 * (self.V + 34)) - 1)
         n_beta = 0.125 * bm.exp(-(self.V + 44) / 80)
-        # print('v=', self.V)
         self.n = bm.Variable(n_alpha / (n_alpha + n_beta))
         h_alpha = 0.07 * bm.exp(-(self.V + 58) / 20)
         h_beta = 1 / (bm.exp(-0.1 * (self.V + 28)) + 1)
@@ -48,15 +39,7 @@ class HH(bp.dyn.NeuGroup):
         # integral
         self.integral = bp.odeint(bp.JointEq([self.dV, self.dn, self.dh]), method=method)
 
-
-
-    # def dm(self, m, t, V):
-    #     alpha =  -0.1 * (V + 35) / (bm.exp(-0.1 * (V + 35)) - 1) #0.1*(25-V) / (bm.exp(2.5 - 0.1*V)-1) #0.1 * (-V + 25) / (1 - bm.exp(-(V -25) / 10))
-    #     beta = 4 * bm.exp(-(V + 60) / 18) #4.0*bm.exp(-V/18.0) #4.0 * bm.exp(-V / 18)
-    #     dmdt = alpha / (alpha + beta)  #alpha * (1 - m) - beta * m
-    #     return dmdt
-
-    def dh(self, h, t, V):
+  def dh(self, h, t, V):
         alpha = 0.07 * bm.exp(-(V + 58) / 20) #0.07*bm.exp(-V/20.0) #0.07 * bm.exp(-V / 20.)
         beta = 1 / (bm.exp(-0.1 * (V + 28)) + 1) #1/(1+bm.exp(3.0-0.1*V)) #1 / (1 + bm.exp(-(V - 30) / 10))
         dhdt = alpha * (1 - h) - beta * h
@@ -104,9 +87,8 @@ num = 100 # num neurons
 neu = HH(num)
 
 def run_syn(syn_model, title, run_duration=500., sp_times=(10, 20, 30), **kwargs):
-    pre = neu#bp.neurons.HH(1, V_initializer=bp.init.Constant(-70.68)) #bp.neurons.SpikeTimeGroup(1, times=sp_times, indices=[0] * len(sp_times))
-    post = neu#bp.neurons.HH(1, V_initializer=bp.init.Constant(-70.68))
-    #print('model=', syn_model)
+    pre = neu #bp.neurons.HH(1, V_initializer=bp.init.Constant(-70.68)) #bp.neurons.SpikeTimeGroup(1, times=sp_times, indices=[0] * len(sp_times))
+    post = neu #bp.neurons.HH(1, V_initializer=bp.init.Constant(-70.68))
     syn = syn_model(pre, post, conn=bp.connect.All2All(include_self=False), **kwargs)
     net = bp.Network(pre=pre, syn=syn, post=post)
 
@@ -118,22 +100,10 @@ def run_syn(syn_model, title, run_duration=500., sp_times=(10, 20, 30), **kwargs
     runner.run(run_duration)
 
     print(bm.where(runner.mon['post.spike'][:,0]==True))
-    # # how to change this value
-    #pre.spike.value[:5, 0] = [True, True, True, True, True]
-
-    #print(bm.where(runner.mon['syn.spike_arrival_time']>-10))
-    #print(bm.unique(runner.mon['syn.spike_arrival_time'][:,0]))
-    # print('1=',list(pre.spike.value)[0:5])
-    #pre.spike.value[0]=np.array(True,dtype=bool)#Array(True, dtype=bool)
+    #pre.spike.value[0]=np.array(True,dtype=bool)#Array(True, dtype=bool) # it doesn't work like this 
 
     # for i in range(15):
     #     pre.spike.value=pre.spike.value.at[i].set(True)
-    # print(pre.spike.value)
-    # runner.mon['pre.spike'][:5,0] = [True,True,True,True,True]
-
-    #print(bm.where(runner.mon['post.spike']==True), bm.where(runner.mon['pre.spike']==True))
-    #print(bm.where(runner.mon['spike_arrival_time']>-1e7))
-    # print(bm.where(runner.mon['spike']==True))
 
     fig, gs = bp.visualize.get_figure(2, 1, 3, 12.)
 
