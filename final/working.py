@@ -107,6 +107,14 @@ syn = bp.SynConn(model=GABAa,
                  monitors=['s'])
 
 #print('s =', syn.mon.s.shape)
+# My doubt it could possibly be because of  variable s 
+# here ST['s'] has shape 9900 ( which comes from 100 neuron matrix excluding self connection ( diagonal entries))
+# 100 x100 -100 = 9900 
+# how as when we print it in line 85 it is 1, a scaler value which match the mode in 97 line 'scalar'
+# but this 9900 represnt 'vector' mode
+# also in other files it is of shape 100 corresponding to 100 neurons 
+
+
 
 import numpy as np
 
