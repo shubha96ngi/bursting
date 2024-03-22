@@ -188,7 +188,12 @@ class AMPAConnMat(BaseAMPASyn):
     self.g.value = self.integral(self.g, _t, TT, dt=_dt)
     # get the post-synaptic current
     #g_post = self.g.sum(axis=0)
+    # post_cond = np.zeros(len(post2syn), dtype= np.float_)
+    # for post_id, syn_ids in enumerate(post2syn):
+    #   post_cond[post_id] = np.sum(g_max*self.g[syn_ids])
+      
     self.post.input += self.g_max *self.g * (self.E - self.post.V)
+    #self.post.input += post_cond * (self.E - self.post.V)
 
 show_syn_model(AMPAConnMat)
 
