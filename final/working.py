@@ -1,4 +1,7 @@
 # this is working example from brainpy documentation 
+# set up separate environment for brainpy 3.1 
+# pip install git+https://github.com/brainpy/Brainpy.git@V0.3.1
+
 
 import brainpy as bp
 bp.profile.set(jit=True,
