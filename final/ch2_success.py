@@ -189,9 +189,10 @@ class AMPAConnMat(BaseAMPASyn):
     self.spike_arrival_time.value = bm.where(delayed_spike, _t, self.spike_arrival_time)
 
     # get the neurotransmitter concentration at the current time
-    #TT = 1 / (1 + bm.exp(-(self.pre.V - neu.V_th) / 2))#
+    # ismn ye bhi kar sakte hai 
+    TT = 1 / (1 + bm.exp(-(self.pre.V - neu.V_th) / 2))#
    # TT = ((_t - self.pre.t_last_spike) < self.T_duration) * self.T  #
-    TT = ((_t - self.spike_arrival_time) < self.T_duration) * self.T  #
+    # TT = ((_t - self.spike_arrival_time) < self.T_duration) * self.T  #
     #integrate the synapse state
     TT = TT.reshape((-1, 1)) * self.conn_mat  # NOTE: only keep the concentrations
                                                    # on the invalid connections
