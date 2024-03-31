@@ -98,25 +98,34 @@ class GABAa(bp.Projection):
 class SimpleNet(bp.DynSysGroup):
     def __init__(self, E=0.):
         super().__init__()
-        '''
+    
         size = 100
         a = bp.dyn.HH(100)
         a._V_initializer = bm.Variable(bm.ones(size) * -65)
         V = a._V_initializer
+        a._h_initializer = bm.Variable(bm.ones(size) * 0.6)
+        a._n_initializer = bm.Variable(bm.ones(size) * 0.32)
+        a._m_initializer = bm.Variable(bm.ones(size) * 0.5)
+        m =a._m_initializer
         a.n_beta = 0.125 * bm.exp(-(V + 44) / 80)
         a.n_alpha = -0.01 * (V + 34) / (bm.exp(-0.1 * (V + 34)) - 1)
         a.m_alpha = -0.1 * (V + 35) / (bm.exp(-0.1 * (V + 35)) - 1)
         a.m_beta = 4 * bm.exp(-(V + 60) / 18)
         a.h_alpha = 0.07 * bm.exp(-(V + 58) / 20)
         a.h_beta =  1 / (bm.exp(-0.1 * (V + 28)) + 1)
-        a._h_initializer =  bm.Variable(bm.ones(size) * 0.6)
-        a._n_initializer =  bm.Variable(bm.ones(size) * 0.32)
-        a._m_initializer =  bm.Variable(bm.ones(size) * 0.5)
-        #a._V_initializer = bm.Variable(bm.ones(size) * -65)
-        # a(40- 20 )
-        input = 3  # np.ones(int(100. / bm.get_dt())) * 20.
-        a.update(x=input)
-        '''
+       #  a.n_beta = lambda a, V:0.125 * bm.exp(-(V + 44) / 80)
+       #  a.n_alpha = lambda a, V:-0.01 * (V + 34) / (bm.exp(-0.1 * (V + 34)) - 1)
+       #  a.m_alpha = lambda a, V: -0.1 * (V + 35) / (bm.exp(-0.1 * (V + 35)) - 1)
+       #  a.m_beta = lambda a, V:4 * bm.exp(-(V + 60) / 18)
+        a.dm = a.m_alpha * (1 - m) - a.m_beta * m
+        # for error check this link  --https://brainpy.readthedocs.io/en/latest/_modules/brainpy/_src/dyn/neurons/hh.html#
+    # it is still accessing definition from this hh.html file . when I have explicitly rewrote definition for dm 
+        
+        
+
+        
+        
+        
         #
        # updating value of input 
         self.pre = bp.dyn.HH(10) #bp.dyn.SpikeTimeGroup(10, indices=(0, 0, 0, 0), times=(10., 30., 50., 70.)) #bp.neurons.HH(10, V_initializer=bp.init.Constant(-70.)) #bp.dyn.SpikeTimeGroup(1, indices=(0, 0, 0, 0), times=(10., 30., 50., 70.))
