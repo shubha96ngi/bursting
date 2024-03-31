@@ -30,6 +30,12 @@ class SimpleNet(bp.DynSysGroup):
       
         #
         self.pre = bp.dyn.HH(10) #neu#bp.dyn.SpikeTimeGroup(10, indices=(0, 0, 0, 0), times=(10., 30., 50., 70.)) #bp.neurons.HH(10, V_initializer=bp.init.Constant(-70.)) #bp.dyn.SpikeTimeGroup(1, indices=(0, 0, 0, 0), times=(10., 30., 50., 70.))
+        
+        bm.set_dt(0.01)
+        bp.share.save(t=bm.get_dt())
+        self.pre.update(20)
+
+        
         self.post = neu #bp.dyn.HH(10, V_initializer=bp.init.Constant(-70.)) #bp.dyn.LifRef(1, V_rest=-60., V_th=-50., V_reset=-60., tau=20., tau_ref=5.,
                                   #V_initializer=bp.init.Constant(-60.))
         self.syn = GABAa(self.pre, self.post, delay=None, prob=1., g_max=0.1/100, E=0.)
