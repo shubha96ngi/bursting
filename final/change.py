@@ -14,16 +14,30 @@ class SimpleNet(bp.DynSysGroup):
     def __init__(self, E=0.):
         super().__init__()
         a = bp.dyn.HHLTC(10)
+        a._V_initializer = bm.Variable(bm.ones(size) * -65)
+        V = a._V_initializer
+        a._h_initializer = bm.Variable(bm.ones(size) * 0.6)
+        a._n_initializer = bm.Variable(bm.ones(size) * 0.32)
+        a._m_initializer = bm.Variable(bm.ones(size) * 0.5)
+        m =a._m_initializer
         a.n_beta = 0.125 * bm.exp(-(V + 44) / 80)
         a.n_alpha = -0.01 * (V + 34) / (bm.exp(-0.1 * (V + 34)) - 1)
         a.m_alpha = -0.1 * (V + 35) / (bm.exp(-0.1 * (V + 35)) - 1)
         a.m_beta = 4 * bm.exp(-(V + 60) / 18)
         a.h_alpha = 0.07 * bm.exp(-(V + 58) / 20)
         a.h_beta =  1 / (bm.exp(-0.1 * (V + 28)) + 1)
-        a._h_initializer =  bm.Variable(bm.ones(size) * 0.6)
-        a._n_initializer =  bm.Variable(bm.ones(size) * 0.32)
-        a._m_initializer =  bm.Variable(bm.ones(size) * 0.5)
-        a._m_initializer = bm.Variable(bm.ones(size) * -65)
+       
+       #  a.n_beta = lambda a, V:0.125 * bm.exp(-(V + 44) / 80)
+       #  a.n_alpha = lambda a, V:-0.01 * (V + 34) / (bm.exp(-0.1 * (V + 34)) - 1)
+       #  a.m_alpha = lambda a, V: -0.1 * (V + 35) / (bm.exp(-0.1 * (V + 35)) - 1)
+       # # a.m  =
+       #  a.m_beta = lambda a, V:4 * bm.exp(-(V + 60) / 18)
+        a.dm = a.m_alpha * (1 - m) - a.m_beta * m
+        # It is giving error in dm still accessing previous definition of dm in HH 
+        # dm = lambda a, m, t, V: self.m_alpha(V) * (1 - m) - self.m_beta(V) * m
+        # a.h_alpha = lambda a, V:0.07 * bm.exp(-(V + 58) / 20)
+        # a.h_beta =  lambda a, V:1 / (bm.exp(-0.1 * (V + 28)) + 1)
+
 
       # I dont know how to integrate HH with a  in self.pre 
       # is it correct method?
