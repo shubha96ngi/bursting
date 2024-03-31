@@ -208,3 +208,99 @@ class AMPAConnMat(BaseAMPASyn):
 
 show_syn_model(AMPAConnMat)
 
+# same results with 
+# one weird thing is that it by changing monitors from neu.input , neu.V , neu.spike  to V, spike , input ... it does not give the result 
+
+import brainpy as bp
+import brainpy.math as bm
+import matplotlib.pyplot as plt
+
+
+
+bp.math.set_dt(0.05)
+class HH(bp.NeuGroup):
+  def __init__(self, size, ENa=55., EK=-90., EL=-65, C=1.0, gNa=35.,
+               gK=9., gL=0.1, V_th=20., phi=5, method='exp_auto'):
+    super(HH, self).__init__(size=size)
+
+    # parameters
+    self.ENa = ENa
+    self.EK = EK
+    self.EL = EL
+    self.C = C
+    self.gNa = gNa
+    self.gK = gK
+    self.gL = gL
+    self.V_th = V_th
+    self.phi = phi
+
+    # variables
+    self.V = bm.Variable(bm.ones(size) * -65.)
+    self.h = bm.Variable(bm.ones(size) *0.6)
+    self.n = bm.Variable(bm.ones(size) * 0.32)
+    self.spike = bm.Variable(bm.zeros(size, dtype=bool))
+    self.input = bm.Variable(bm.zeros(size))
+    self.t_last_spike = bm.Variable(bm.ones(size) * -1e7)
+
+    # integral
+    self.integral = bp.odeint(bp.JointEq([self.dV, self.dh, self.dn]), method=method)
+
+  def dh(self, h, t, V):
+    alpha = 0.07 * bm.exp(-(V + 58) / 20)
+    beta = 1 / (bm.exp(-0.1 * (V + 28)) + 1)
+    dhdt = alpha * (1 - h) - beta * h
+    return self.phi * dhdt
+
+  def dn(self, n, t, V):
+    alpha = -0.01 * (V + 34) / (bm.exp(-0.1 * (V + 34)) - 1)
+    beta = 0.125 * bm.exp(-(V + 44) / 80)
+    dndt = alpha * (1 - n) - beta * n
+    return self.phi * dndt
+
+  def dV(self, V, t, h, n, Iext):
+    m_alpha = -0.1 * (V + 35) / (bm.exp(-0.1 * (V + 35)) - 1)
+    m_beta = 4 * bm.exp(-(V + 60) / 18)
+    m = m_alpha / (m_alpha + m_beta)
+    INa = self.gNa * m ** 3 * h * (V - self.ENa)
+    IK = self.gK * n ** 4 * (V - self.EK)
+    IL = self.gL * (V - self.EL)
+    dVdt = (- INa - IK - IL + Iext) / self.C
+
+    return dVdt
+
+  def update(self, tdi):
+    V, h, n = self.integral(self.V, self.h, self.n, tdi.t, self.input, tdi.dt)
+    self.spike.value = bm.logical_and(self.V < self.V_th, V >= self.V_th)
+    self.t_last_spike.value = bm.where(self.spike, tdi.t, self.t_last_spike)
+    self.V.value = V
+    self.h.value = h
+    self.n.value = n
+    self.input[:] = 0
+
+
+num = 100
+neu = HH(num)
+neu.V[:] = -70. + bm.random.normal(size=num) * 20
+
+syn = bp.synapses.GABAa(pre=neu, post=neu, conn=bp.connect.All2All(include_self=False))
+syn.g_max = 0.1 / num
+
+net = bp.Network(neu=neu, syn=syn)
+runner = bp.DSRunner(net, monitors=['neu.spike', 'neu.V'], inputs=['neu.input',1.2]) # bm.random.normal(1,0.02,num)])
+# runner = bp.DSRunner(neu, monitors=['V','spike'], inputs=['input',1,'fix','=']) # bm.random.normal(1,0.02,num)])
+
+runner.run(duration=500.)
+
+fig, gs = bp.visualize.get_figure(2, 1, 3, 8)
+
+fig.add_subplot(gs[0, 0])
+bp.visualize.line_plot(runner.mon.ts, runner.mon['neu.V'][:,0], ylabel='Membrane potential (N0)')
+bp.visualize.line_plot(runner.mon.ts, runner.mon['neu.V'][:,1])
+
+# bp.visualize.line_plot(runner.mon.ts, runner.mon.V[:,0], ylabel='Membrane potential (N0)')
+# bp.visualize.line_plot(runner.mon.ts, runner.mon.V[:,1])
+
+fig.add_subplot(gs[1, 0])
+bp.visualize.raster_plot(runner.mon.ts, runner.mon['neu.spike'], show=True)
+plt.show()
+
