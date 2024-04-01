@@ -76,7 +76,7 @@ class HH(bp.NeuGroup):
 
 num = 100
 neu = HH(num)
-neu.V[:] = -70.# + bm.random.normal(size=num) * 20
+neu.V[:] = -70. # + bm.random.normal(size=num) * 20
 
 syn = bp.synapses.GABAa(pre=neu, post=neu, conn=bp.connect.All2All(include_self=False),stop_spike_gradient=False)
 syn.g_max = 0.1  #/ num
@@ -110,7 +110,7 @@ class GABAa(bp.Projection):
           delay=delay,
           syn=bp.dyn.GABAa.desc(pre.num, alpha=0.53, beta=0.18, T=1.0, T_dur=1.0),
           comm=bp.dnn.CSRLinear(bp.conn.FixedProb(prob, pre=pre.num, post=post.num), g_max),  #is this also a valid connectivity for wang model 
-          out=bp.dyn.COBA(E=E),
+          out=bp.dyn.COBA(E=E),  #conductance * (self.E - potential)
           post=post,
         )
 
@@ -135,7 +135,7 @@ class SimpleNet(bp.DynSysGroup):
         conductance = self.syn.proj.refs['syn'].g
         current = self.post.sum_inputs(self.post.V)
         # spikes = self.pre.spike
-        return conductance, current, self.pre.V,self.pre.spike.value #,spikes
+        return conductance, current, self.post.V,self.post.spike.value #,spikes
 
     # def return_info(self):
     #     return conductance, current,self.post.V
@@ -156,5 +156,7 @@ fig.add_subplot(gs[0, 1])
 plt.plot(ts, currents)
 plt.title('Syn current')
 fig.add_subplot(gs[0, 2])
-#plt.plot(ts, potentials)
+plt.plot(ts, potentials)  # I am expecting this potentials to be like orange plot while running class HH code
+# my guess is it is because of current supply in line 130 .. and 132 
+# how can I monitor something like pre.input or post.input ?
 plt.show()
