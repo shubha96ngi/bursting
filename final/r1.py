@@ -100,28 +100,52 @@ class SimpleNet(bp.DynSysGroup):
         super().__init__()
     
         size = 100
-        a = bp.dyn.HH(100)
+        a = bp.dyn.HH(size)
         a._V_initializer = bm.Variable(bm.ones(size) * -65)
-        V = a._V_initializer
+        # V = a._V_initializer
         a._h_initializer = bm.Variable(bm.ones(size) * 0.6)
         a._n_initializer = bm.Variable(bm.ones(size) * 0.32)
         a._m_initializer = bm.Variable(bm.ones(size) * 0.5)
-        m =a._m_initializer
-        a.n_beta = 0.125 * bm.exp(-(V + 44) / 80)
-        a.n_alpha = -0.01 * (V + 34) / (bm.exp(-0.1 * (V + 34)) - 1)
-        a.m_alpha = -0.1 * (V + 35) / (bm.exp(-0.1 * (V + 35)) - 1)
-        a.m_beta = 4 * bm.exp(-(V + 60) / 18)
-        a.h_alpha = 0.07 * bm.exp(-(V + 58) / 20)
-        a.h_beta =  1 / (bm.exp(-0.1 * (V + 28)) + 1)
-       #  a.n_beta = lambda a, V:0.125 * bm.exp(-(V + 44) / 80)
-       #  a.n_alpha = lambda a, V:-0.01 * (V + 34) / (bm.exp(-0.1 * (V + 34)) - 1)
-       #  a.m_alpha = lambda a, V: -0.1 * (V + 35) / (bm.exp(-0.1 * (V + 35)) - 1)
-       #  a.m_beta = lambda a, V:4 * bm.exp(-(V + 60) / 18)
-        a.dm = a.m_alpha * (1 - m) - a.m_beta * m
+        # m =a._m_initializer
+
+        a.n_beta = lambda V: 0.125 * bm.exp(-(V + 44) / 80)
+        a.n_alpha = lambda V: -0.01 * (V + 34) / (bm.exp(-0.1 * (V + 34)) - 1)
+        a.dn = lambda V: 5*(a.n_alpha(V) * (1 - n) - a.n_beta(V) * n)
+        a.m_alpha = lambda V: 1. / bm.exprel(-(V + 40) / 10)
+        a.m_beta = lambda V: 4.0 * bm.exp(-(V + 65) / 18)
+        a.m_inf = lambda V: a.m_alpha(V) / (a.m_alpha(V) + a.m_beta(V))
+        # a.dm = lambda a, V: a.m_alpha(V) * (1 - m) - a.m_beta(V) * m
+        a.h_alpha = lambda V: 0.07 * bm.exp(-(V + 58) / 20)
+        a.h_beta = lambda V: 1 / (bm.exp(-0.1 * (V + 28)) + 1)
+        a.dh = lambda  V: 5*(a.h_alpha(V) * (1 - h) - a.h_beta(V) * h)
+
+        a.EK = -90
+        a.EL = -65
+        a.ENa = 55
+        a.gL = 0.1
+        a.gNa = 35
+        a.gK = 9
+        a.V_th = 0
+    
+        a._V_initializer = -70. + bm.random.random(100) * 20
         # for error check this link  --https://brainpy.readthedocs.io/en/latest/_modules/brainpy/_src/dyn/neurons/hh.html#
-    # it is still accessing definition from this hh.html file . when I have explicitly rewrote definition for dm 
-        
-        
+        '''
+        def dV(self, V, t, m, h, n, I):
+            I = self.sum_current_inputs(V, init=I)
+            I_Na = (self.gNa * m * m * m * h) * (V - self.ENa)
+            n2 = n * n
+            I_K = (self.gK * n2 * n2) * (V - self.EK)
+            I_leak = self.gL * (V - self.EL)
+            dVdt = (- I_Na - I_K - I_leak + I) / self.C
+            return dVdt
+        '''
+        # replacing m with m_inf
+        # how to write it ? a.dV.I_Na does not make sense 
+        a.dV.I_Na = I want to change it from self.gNa * m **3 * h) * (V - self.ENa) to self.gNa * m_inf **3 * h) * (V - self.ENa)
+        # another option is something line a.m = a.m_inf # it is also not working 
+        # also is it possible to pass a.m_inf instead of a.m.value in self.integral in update function in https://brainpy.readthedocs.io/en/latest/_modules/brainpy/_src/dyn/neurons/hh.html#
+        # but I dont know how to access this integral function 
+    
 
         
         
