@@ -118,6 +118,7 @@ class SimpleNet(bp.DynSysGroup):
     def __init__(self, E=-80.):
         super().__init__()
         self.pre = bp.dyn.WangBuzsakiHH(10)
+        
         self.pre.V = bm.ones(10)*-70 #+ bm.random.normal(size=10) * 20
         self.post = bp.dyn.WangBuzsakiHH(10)
         self.post.V = bm.ones(10)*-70  #+ bm.random.normal(size=10) * 20
