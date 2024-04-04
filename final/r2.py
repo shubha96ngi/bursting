@@ -73,9 +73,12 @@ class HH(bp.NeuGroup):
     self.m.value = m
     self.input[:] = 0
 
+'''
+
 
 num = 100
-neu = HH(num)
+#neu = HH(num)
+neu = bp.dyn.
 neu.V[:] = -70. # + bm.random.normal(size=num) * 20
 
 syn = bp.synapses.GABAa(pre=neu, post=neu, conn=bp.connect.All2All(include_self=False),stop_spike_gradient=False)
@@ -98,7 +101,7 @@ bp.visualize.line_plot(runner.mon.ts, runner.mon['neu.V'][:,1])
 fig.add_subplot(gs[1, 0])
 bp.visualize.raster_plot(runner.mon.ts, runner.mon['neu.spike'], show=True)
 plt.show()
-'''
+
 
 # I am trying to replicate this behaviour with this syntax
 
@@ -117,7 +120,7 @@ class GABAa(bp.Projection):
 class SimpleNet(bp.DynSysGroup):
     def __init__(self, E=-80.):
         super().__init__()
-        self.pre = bp.dyn.WangBuzsakiHH(10)
+        self.pre = bp.dyn.WangBuzsakiHH(10)  # or bp.dyn.HH
         
         self.pre.V = bm.ones(10)*-70 #+ bm.random.normal(size=10) * 20
         self.post = bp.dyn.WangBuzsakiHH(10)
