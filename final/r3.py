@@ -89,122 +89,122 @@ plt.show()
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # instead of using bp.synapses.GABAa in line 74  I copied this GABAa class from their documentation 
-from typing import Union, Dict, Callable, Optional
-from brainpy._src.connect import TwoEndConnector
-from brainpy._src.dyn import synapses
-from brainpy._src.dynold.synapses import _SynSTP, _SynOut, _TwoEndConnAlignPre
-from brainpy._src.dynold.synouts import COBA, MgBlock
-from brainpy._src.dyn.base import NeuDyn
-from brainpy.types import ArrayType
+# from typing import Union, Dict, Callable, Optional
+# from brainpy._src.connect import TwoEndConnector
+# from brainpy._src.dyn import synapses
+# from brainpy._src.dynold.synapses import _SynSTP, _SynOut, _TwoEndConnAlignPre
+# from brainpy._src.dynold.synouts import COBA, MgBlock
+# from brainpy._src.dyn.base import NeuDyn
+# from brainpy.types import ArrayType
 
 
-class AMPA(_TwoEndConnAlignPre):
+# class AMPA(_TwoEndConnAlignPre):
 
-  def __init__(
-      self,
-      pre: NeuDyn,
-      post: NeuDyn,
-      conn: Union[TwoEndConnector, ArrayType, Dict[str, ArrayType]],
-      output: _SynOut = COBA(E=0.),
-      stp: Optional[_SynSTP] = None,
-      comp_method: str = 'dense',
-      g_max: Union[float, ArrayType, Callable] = 0.42,
-      delay_step: Union[int, ArrayType, Callable] = None,
-      alpha: float = 0.98,
-      beta: float = 0.18,
-      T: float = 0.5,
-      T_duration: float = 0.5,
-      method: str = 'exp_auto',
-      name: Optional[str] = None,
-      mode: Optional[bm.Mode] = None,
-      stop_spike_gradient: bool = False,
-  ):
-    # parameters
-    self.stop_spike_gradient = stop_spike_gradient
-    self.comp_method = comp_method
-    self.alpha = alpha
-    self.beta = beta
-    self.T = T
-    self.T_duration = T_duration
-    if bm.size(alpha) != 1:
-      raise ValueError(f'"alpha" must be a scalar or a tensor with size of 1. But we got {alpha}')
-    if bm.size(beta) != 1:
-      raise ValueError(f'"beta" must be a scalar or a tensor with size of 1. But we got {beta}')
-    if bm.size(T) != 1:
-      raise ValueError(f'"T" must be a scalar or a tensor with size of 1. But we got {T}')
-    if bm.size(T_duration) != 1:
-      raise ValueError(f'"T_duration" must be a scalar or a tensor with size of 1. But we got {T_duration}')
+#   def __init__(
+#       self,
+#       pre: NeuDyn,
+#       post: NeuDyn,
+#       conn: Union[TwoEndConnector, ArrayType, Dict[str, ArrayType]],
+#       output: _SynOut = COBA(E=0.),
+#       stp: Optional[_SynSTP] = None,
+#       comp_method: str = 'dense',
+#       g_max: Union[float, ArrayType, Callable] = 0.42,
+#       delay_step: Union[int, ArrayType, Callable] = None,
+#       alpha: float = 0.98,
+#       beta: float = 0.18,
+#       T: float = 0.5,
+#       T_duration: float = 0.5,
+#       method: str = 'exp_auto',
+#       name: Optional[str] = None,
+#       mode: Optional[bm.Mode] = None,
+#       stop_spike_gradient: bool = False,
+#   ):
+#     # parameters
+#     self.stop_spike_gradient = stop_spike_gradient
+#     self.comp_method = comp_method
+#     self.alpha = alpha
+#     self.beta = beta
+#     self.T = T
+#     self.T_duration = T_duration
+#     if bm.size(alpha) != 1:
+#       raise ValueError(f'"alpha" must be a scalar or a tensor with size of 1. But we got {alpha}')
+#     if bm.size(beta) != 1:
+#       raise ValueError(f'"beta" must be a scalar or a tensor with size of 1. But we got {beta}')
+#     if bm.size(T) != 1:
+#       raise ValueError(f'"T" must be a scalar or a tensor with size of 1. But we got {T}')
+#     if bm.size(T_duration) != 1:
+#       raise ValueError(f'"T_duration" must be a scalar or a tensor with size of 1. But we got {T_duration}')
 
-    # AMPA
-    syn = synapses.AMPA(pre.size, pre.keep_size, mode=mode, alpha=alpha, beta=beta,
-                        T=T, T_dur=T_duration, method=method)
+#     # AMPA
+#     syn = synapses.AMPA(pre.size, pre.keep_size, mode=mode, alpha=alpha, beta=beta,
+#                         T=T, T_dur=T_duration, method=method)
 
-    super().__init__(pre=pre,
-                     post=post,
-                     syn=syn,
-                     conn=conn,
-                     output=output,
-                     stp=stp,
-                     comp_method=comp_method,
-                     g_max=g_max,
-                     delay_step=delay_step,
-                     name=name,
-                     mode=mode)
+#     super().__init__(pre=pre,
+#                      post=post,
+#                      syn=syn,
+#                      conn=conn,
+#                      output=output,
+#                      stp=stp,
+#                      comp_method=comp_method,
+#                      g_max=g_max,
+#                      delay_step=delay_step,
+#                      name=name,
+#                      mode=mode)
 
-    # copy the references
-    self.g = syn.g
-    self.spike_arrival_time = syn.spike_arrival_time
-
-
-
-  def update(self, pre_spike=None):
-    return super().update(pre_spike, stop_spike_gradient=self.stop_spike_gradient)
+#     # copy the references
+#     self.g = syn.g
+#     self.spike_arrival_time = syn.spike_arrival_time
 
 
 
+#   def update(self, pre_spike=None):
+#     return super().update(pre_spike, stop_spike_gradient=self.stop_spike_gradient)
 
 
-class GABAa(AMPA):
 
-  def __init__(
-      self,
-      pre: NeuDyn,
-      post: NeuDyn,
-      conn: Union[TwoEndConnector, ArrayType, Dict[str, ArrayType]],
-      output: _SynOut = COBA(E=-80.),
-      stp: Optional[_SynSTP] = None,
-      comp_method: str = 'dense',
-      g_max: Union[float, ArrayType, Callable] = 0.04,
-      delay_step: Union[int, ArrayType, Callable] = None,
-      alpha: Union[float, ArrayType] = 0.53,
-      beta: Union[float, ArrayType] = 0.18,
-      T: Union[float, ArrayType] = 1.,
-      T_duration: Union[float, ArrayType] = 1.,
-      method: str = 'exp_auto',
+
+
+# class GABAa(AMPA):
+
+#   def __init__(
+#       self,
+#       pre: NeuDyn,
+#       post: NeuDyn,
+#       conn: Union[TwoEndConnector, ArrayType, Dict[str, ArrayType]],
+#       output: _SynOut = COBA(E=-80.),
+#       stp: Optional[_SynSTP] = None,
+#       comp_method: str = 'dense',
+#       g_max: Union[float, ArrayType, Callable] = 0.04,
+#       delay_step: Union[int, ArrayType, Callable] = None,
+#       alpha: Union[float, ArrayType] = 0.53,
+#       beta: Union[float, ArrayType] = 0.18,
+#       T: Union[float, ArrayType] = 1.,
+#       T_duration: Union[float, ArrayType] = 1.,
+#       method: str = 'exp_auto',
 
     
 
-      # other parameters
-      name: str = None,
-      mode: bm.Mode = None,
-      stop_spike_gradient: bool = False,
-  ):
-    super().__init__(pre=pre,
-                     post=post,
-                     conn=conn,
-                     output=output,
-                     stp=stp,
-                     comp_method=comp_method,
-                     delay_step=delay_step,
-                     g_max=g_max,
-                     alpha=alpha,
-                     beta=beta,
-                     T=T,
-                     T_duration=T_duration,
-                     method=method,
-                     name=name,
-                     mode=mode,
-                     stop_spike_gradient=stop_spike_gradient, )
+#       # other parameters
+#       name: str = None,
+#       mode: bm.Mode = None,
+#       stop_spike_gradient: bool = False,
+#   ):
+#     super().__init__(pre=pre,
+#                      post=post,
+#                      conn=conn,
+#                      output=output,
+#                      stp=stp,
+#                      comp_method=comp_method,
+#                      delay_step=delay_step,
+#                      g_max=g_max,
+#                      alpha=alpha,
+#                      beta=beta,
+#                      T=T,
+#                      T_duration=T_duration,
+#                      method=method,
+#                      name=name,
+#                      mode=mode,
+#                      stop_spike_gradient=stop_spike_gradient, )
 
 
 #I can use directly syn = GABAa 
